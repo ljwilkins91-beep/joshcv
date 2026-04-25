@@ -468,7 +468,7 @@ export default function StudioJ() {
                 <div className="mono text-[11px] opacity-50">{jobDesc.length} chars</div>
               </div>
               <div className="p-5" style={{ background: "#fbf7ee", border: "1.5px solid #1a1612", minHeight: 320 }}>
-                <textarea value={jobDesc} onChange={(e) => setJobDesc(e.target.value)} placeholder="Paste the full job posting — role, responsibilities, requirements, company blurb…" rows={14} />
+                <textarea value={jobDesc} onChange={(e) => setJobDesc(e.target.value)} placeholder="Paste the full job posting — role, responsibilities, requirements, company blurb…" rows={14} cols={1} style={{ width: "100%", display: "block", boxSizing: "border-box" }} />
               </div>
             </div>
 
@@ -614,7 +614,7 @@ export default function StudioJ() {
                 </div>
 
                 <div className="p-5" style={{ background: "#fbf7ee", border: "1.5px solid #1a1612", minHeight: 400 }}>
-                  <textarea value={cv} onChange={(e) => { setCv(e.target.value); if (uploadedFilename) setUploadedFilename(""); }} placeholder="Upload a file above, or paste your full CV — experience, credits, education, skills, gear, DAWs, etc." rows={18} />
+                  <textarea value={cv} onChange={(e) => { setCv(e.target.value); if (uploadedFilename) setUploadedFilename(""); }} placeholder="Upload a file above, or paste your full CV — experience, credits, education, skills, gear, DAWs, etc." rows={18} cols={1} style={{ width: "100%", display: "block", boxSizing: "border-box" }} />
                 </div>
               </div>
 
