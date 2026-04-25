@@ -371,8 +371,8 @@ export default function StudioJ() {
         .grain { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E"); pointer-events: none; }
         .rule { height: 1px; background: #1a1612; opacity: 0.25; }
         .rule-thick { height: 3px; background: #1a1612; }
-        textarea, input[type="text"], input[type="url"] { background: transparent; border: none; outline: none; resize: none; width: 100%; font-family: 'JetBrains Mono', monospace; font-size: 15px; line-height: 1.7; color: #1a1612; }
-        textarea { min-height: 100px; }
+        textarea, input[type="text"], input[type="url"] { background: transparent; border: none; outline: none; width: 100%; display: block; box-sizing: border-box; font-family: 'JetBrains Mono', monospace; font-size: 15px; line-height: 1.7; color: #1a1612; }
+        textarea { resize: vertical; min-height: 100px; }
         textarea::placeholder, input::placeholder { color: #8a7e6a; font-style: italic; }
         .mode-btn { transition: all 0.2s ease; cursor: pointer; }
         .mode-btn:hover { transform: translateY(-1px); }
