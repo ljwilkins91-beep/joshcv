@@ -39,7 +39,7 @@ export default function LoginPage() {
     <div
       className="min-h-screen w-full flex items-center justify-center px-5"
       style={{
-        background: "radial-gradient(ellipse at top left, #f5efe4 0%, #ede4d3 40%, #e6dcc6 100%)",
+        background: "#ffffff",
         color: "#1a1612",
         fontFamily: "Fraunces, serif",
       }}

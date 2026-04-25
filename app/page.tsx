@@ -363,7 +363,7 @@ export default function StudioJ() {
   const typeBadge = detectedType ? JOB_TYPES.find((t) => t.key === detectedType)?.label || detectedType : null;
 
   return (
-    <div className="min-h-screen w-full" style={{ background: "radial-gradient(ellipse at top left, #f5efe4 0%, #ede4d3 40%, #e6dcc6 100%)", fontFamily: "Fraunces, serif", color: "#1a1612" }}>
+    <div className="min-h-screen w-full" style={{ background: "#ffffff", fontFamily: "Fraunces, serif", color: "#1a1612" }}>
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,400&family=JetBrains+Mono:wght@400;500;700&display=swap');
         .mono { font-family: 'JetBrains Mono', monospace; }
@@ -371,7 +371,8 @@ export default function StudioJ() {
         .grain { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E"); pointer-events: none; }
         .rule { height: 1px; background: #1a1612; opacity: 0.25; }
         .rule-thick { height: 3px; background: #1a1612; }
-        textarea, input[type="text"], input[type="url"] { background: transparent; border: none; outline: none; resize: none; width: 100%; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.65; color: #1a1612; }
+        textarea, input[type="text"], input[type="url"] { background: transparent; border: none; outline: none; resize: none; width: 100%; font-family: 'JetBrains Mono', monospace; font-size: 15px; line-height: 1.7; color: #1a1612; }
+        textarea { min-height: 100px; }
         textarea::placeholder, input::placeholder { color: #8a7e6a; font-style: italic; }
         .mode-btn { transition: all 0.2s ease; cursor: pointer; }
         .mode-btn:hover { transform: translateY(-1px); }
@@ -466,8 +467,8 @@ export default function StudioJ() {
                 <div className="mono text-[11px] tracking-[0.2em] uppercase opacity-60">02 — Paste job description</div>
                 <div className="mono text-[11px] opacity-50">{jobDesc.length} chars</div>
               </div>
-              <div className="p-4" style={{ background: "#fbf7ee", border: "1.5px solid #1a1612", minHeight: 200 }}>
-                <textarea value={jobDesc} onChange={(e) => setJobDesc(e.target.value)} placeholder="Paste the full job posting — role, responsibilities, requirements, company blurb…" rows={10} />
+              <div className="p-5" style={{ background: "#fbf7ee", border: "1.5px solid #1a1612", minHeight: 320 }}>
+                <textarea value={jobDesc} onChange={(e) => setJobDesc(e.target.value)} placeholder="Paste the full job posting — role, responsibilities, requirements, company blurb…" rows={14} />
               </div>
             </div>
 
@@ -583,7 +584,7 @@ export default function StudioJ() {
 
       {settingsOpen && (
         <div className="drawer-backdrop fixed inset-0 z-40" style={{ background: "rgba(26,22,18,0.4)" }} onClick={() => setSettingsOpen(false)}>
-          <div className="drawer-panel absolute right-0 top-0 bottom-0 w-full md:w-[540px] overflow-y-auto" style={{ background: "#f5efe4", borderLeft: "1.5px solid #1a1612" }} onClick={(e) => e.stopPropagation()}>
+          <div className="drawer-panel absolute right-0 top-0 bottom-0 w-full md:w-[640px] overflow-y-auto" style={{ background: "#ffffff", borderLeft: "1.5px solid #1a1612" }} onClick={(e) => e.stopPropagation()}>
             <div className="p-6 md:p-8">
               <div className="flex items-center justify-between mb-6">
                 <div>
@@ -612,8 +613,8 @@ export default function StudioJ() {
                   {cv && <button onClick={() => { setCv(""); setUploadedFilename(""); }} className="icon-btn mono text-[11px] tracking-[0.15em] uppercase flex items-center gap-2 px-3 py-2" style={{ border: "1.5px solid #1a1612" }} title="Clear CV"><Trash2 size={12} /></button>}
                 </div>
 
-                <div className="p-4" style={{ background: "#fbf7ee", border: "1.5px solid #1a1612", minHeight: 260 }}>
-                  <textarea value={cv} onChange={(e) => { setCv(e.target.value); if (uploadedFilename) setUploadedFilename(""); }} placeholder="Upload a file above, or paste your full CV — experience, credits, education, skills, gear, DAWs, etc." rows={14} />
+                <div className="p-5" style={{ background: "#fbf7ee", border: "1.5px solid #1a1612", minHeight: 400 }}>
+                  <textarea value={cv} onChange={(e) => { setCv(e.target.value); if (uploadedFilename) setUploadedFilename(""); }} placeholder="Upload a file above, or paste your full CV — experience, credits, education, skills, gear, DAWs, etc." rows={18} />
                 </div>
               </div>
 
