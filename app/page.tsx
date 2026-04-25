@@ -394,7 +394,7 @@ export default function StudioJ() {
 
       <div className="fixed inset-0 grain opacity-30 pointer-events-none" />
 
-      <div className="relative max-w-5xl mx-auto px-6 md:px-10 py-10 md:py-16">
+      <div className="relative max-w-[1400px] mx-auto px-6 md:px-12 py-10 md:py-16">
         <header className="mb-10 fade-up stagger-1">
           <div className="flex items-baseline justify-between mono text-[11px] tracking-[0.2em] uppercase opacity-60 mb-4 flex-wrap gap-2">
             <div className="flex items-center gap-2">
