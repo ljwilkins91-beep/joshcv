@@ -28,7 +28,7 @@ export default function LoginPage() {
         const data = await res.json().catch(() => ({}));
         setError(data.error || "Wrong password");
       }
-    } catch (err) {
+    } catch {
       setError("Couldn't reach the server.");
     } finally {
       setLoading(false);
@@ -38,81 +38,35 @@ export default function LoginPage() {
   return (
     <div
       className="min-h-screen w-full flex items-center justify-center px-5"
-      style={{ background: "#0e0c0a", color: "#e8e0d2", fontFamily: "'Space Grotesk', sans-serif" }}
+      style={{
+        background: "radial-gradient(ellipse at top left, #f5efe4 0%, #ede4d3 40%, #e6dcc6 100%)",
+        color: "#1a1612",
+        fontFamily: "Fraunces, serif",
+      }}
     >
-      <div
-        className="fixed inset-0 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(ellipse 60% 40% at 50% 0%, rgba(232, 132, 26, 0.10) 0%, transparent 60%)",
-        }}
-      />
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,400&family=JetBrains+Mono:wght@400;500;700&display=swap');
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .serif { font-family: 'Fraunces', serif; }
+      `}</style>
 
       <div className="relative max-w-md w-full">
-        <div className="flex items-center gap-2 justify-center mb-10">
-          <Disc3 size={26} style={{ color: "#e8841a" }} />
-          <div
-            style={{
-              fontFamily: "'Bebas Neue', sans-serif",
-              fontSize: 40,
-              letterSpacing: "0.15em",
-              lineHeight: 1,
-            }}
-          >
-            STUDIO <span style={{ color: "#e8841a" }}>J</span>
-          </div>
+        <div className="flex items-center gap-2 justify-center mb-8 mono text-[11px] tracking-[0.25em] uppercase opacity-60">
+          <Disc3 size={14} />
+          <span>Studio J · For Josh Wilkins</span>
         </div>
 
-        <div
-          className="p-8"
-          style={{
-            background: "linear-gradient(180deg, #1a1612 0%, #15110d 100%)",
-            border: "1px solid #2a2420",
-            borderRadius: 2,
-            boxShadow:
-              "inset 0 1px 0 rgba(255,255,255,0.04), 0 1px 2px rgba(0,0,0,0.6)",
-          }}
-        >
-          <div
-            style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: 10,
-              letterSpacing: "0.25em",
-              textTransform: "uppercase",
-              color: "#e8841a",
-              marginBottom: 8,
-            }}
-          >
-            Door staff
-          </div>
-          <div
-            style={{
-              fontFamily: "'Bebas Neue', sans-serif",
-              fontSize: 32,
-              letterSpacing: "0.04em",
-              color: "#f5ead6",
-              marginBottom: 4,
-            }}
-          >
-            Members only.
-          </div>
-          <div
-            style={{
-              fontFamily: "'Instrument Serif', serif",
-              fontStyle: "italic",
-              fontSize: 17,
-              color: "#9a8a74",
-              marginBottom: 24,
-            }}
-          >
+        <div className="p-8" style={{ background: "#fbf7ee", border: "1.5px solid #1a1612" }}>
+          <div className="mono text-[11px] tracking-[0.25em] uppercase opacity-60 mb-2">Door staff</div>
+          <h1 className="serif mb-1" style={{ fontSize: 42, fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1 }}>
+            Members <em style={{ fontWeight: 400 }}>only</em>.
+          </h1>
+          <p className="serif italic mb-6" style={{ fontSize: 16, color: "#5a4d3c" }}>
             Have a word with the producer if you've forgotten the password.
-          </div>
+          </p>
 
           <form onSubmit={submit}>
-            <div
-              className="p-3 mb-3"
-              style={{ background: "#0a0806", border: "1px solid #2a2420", borderRadius: 2 }}
-            >
+            <div className="p-3 mb-3" style={{ background: "transparent", border: "1.5px solid #1a1612" }}>
               <input
                 type="password"
                 value={password}
@@ -126,22 +80,15 @@ export default function LoginPage() {
                   width: "100%",
                   fontFamily: "'JetBrains Mono', monospace",
                   fontSize: 14,
-                  color: "#e8e0d2",
+                  color: "#1a1612",
                 }}
               />
             </div>
 
             {error && (
               <div
-                className="p-3 mb-3"
-                style={{
-                  background: "#2a0f0a",
-                  border: "1px solid #7a2617",
-                  color: "#ff9999",
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: 12,
-                  borderRadius: 2,
-                }}
+                className="mono text-[12px] p-3 mb-3"
+                style={{ background: "#f5d9c4", border: "1.5px solid #9a3b1a", color: "#6b2a12" }}
               >
                 {error}
               </div>
@@ -150,31 +97,27 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading || !password}
-              className="w-full flex items-center justify-center gap-2 py-4"
+              className="w-full flex items-center justify-center gap-2 py-4 serif"
               style={{
-                background:
-                  "linear-gradient(180deg, #e8841a 0%, #b85c0a 100%)",
-                color: "#0e0c0a",
-                fontFamily: "'Bebas Neue', sans-serif",
-                fontSize: 22,
-                letterSpacing: "0.1em",
-                border: "none",
-                borderRadius: 2,
+                background: "#1a1612",
+                color: "#f5efe4",
+                border: "1.5px solid #1a1612",
+                fontSize: 18,
+                fontWeight: 600,
+                letterSpacing: "-0.01em",
                 cursor: loading || !password ? "not-allowed" : "pointer",
                 opacity: loading || !password ? 0.5 : 1,
-                boxShadow:
-                  "inset 0 1px 0 rgba(255,255,255,0.3), 0 4px 0 #6b3506",
+                boxShadow: "4px 4px 0 #1a1612",
+                transition: "all 0.15s ease",
               }}
             >
               {loading ? (
                 <>
-                  <Loader2 size={18} className="animate-spin" />
-                  Checking...
+                  <Loader2 size={16} className="animate-spin" /> Checking...
                 </>
               ) : (
                 <>
-                  Step in
-                  <ArrowRight size={18} />
+                  Step in <ArrowRight size={16} />
                 </>
               )}
             </button>
