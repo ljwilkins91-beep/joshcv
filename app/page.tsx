@@ -18,7 +18,9 @@ import {
   Upload,
   FileText,
   Disc3,
+  Cpu,
 } from "lucide-react";
+import { MODELS, DEFAULT_MODEL } from "@/lib/models";
 
 const DEFAULT_LINKS = [
   {
@@ -41,6 +43,7 @@ const DEFAULT_LINKS = [
 const STORAGE_KEYS = {
   cv: "studio-j:cv",
   links: "studio-j:links",
+  model: "studio-j:model",
 };
 
 const JOB_TYPES = [
@@ -108,7 +111,17 @@ const REVISION_PRESETS = [
   { key: "warmer", label: "Warmer", sub: "More personal", instruction: "Make the tone a touch warmer and more human. Still professional and British, still no clichés, but let a bit more personality show. Do not become sales-y or try-hard." },
   { key: "colder", label: "More formal", sub: "Cooler register", instruction: "Make this letter more formal and measured. Still concrete, still no filler, but slightly cooler register appropriate for institutional or corporate contexts." },
   { key: "punchier", label: "Punchier", sub: "Sharper second line", instruction: "Keep the opening line standard (stating the role), but sharpen the SECOND sentence so it hooks the reader with a specific, concrete connection to the role. Strengthen the closing." },
+  { key: "mirror", label: "Mirror their tone", sub: "Match the advert", instruction: "Rewrite so the letter mirrors the tone and register of the job advert itself. If the company writes warmly and informally, match that; if they write formally and corporately, match that. Keep all the facts from the CV, keep the standard role-stating opening, keep British English, and keep every banned-words rule." },
   { key: "redo", label: "Fresh take", sub: "Different angle", instruction: "Rewrite this letter with a genuinely different angle or opening. Keep the same facts from the CV but approach the match to the job from a new direction." },
+];
+
+const CV_REVISION_PRESETS = [
+  { key: "cv-shorter", label: "Shorter", sub: "Trim to one page", instruction: "Tighten this CV so the most role-relevant material fits comfortably on a single page. Cut older or less relevant detail, but keep every remaining claim truthful to the source CV and invent nothing." },
+  { key: "cv-fuller", label: "Fuller", sub: "More detail", instruction: "Expand this CV with more concrete, relevant detail drawn ONLY from the source CV. Do not invent anything not present in the source." },
+  { key: "cv-technical", label: "More technical", sub: "Lead with craft", instruction: "Re-weight so technical craft leads: gear, DAWs, signal chain, mixing and mastering approach, specific sessions. Keep it truthful to the source CV." },
+  { key: "cv-reorder", label: "Reorder for role", sub: "Most relevant first", instruction: "Reorder the sections and bullets so the experience and skills most relevant to this specific job appear first. Do not add anything not in the source CV." },
+  { key: "cv-plainer", label: "Plainer", sub: "Strip the flourish", instruction: "Rewrite in plain, direct, ATS-friendly English. Remove any flourish or stylistic phrasing. Keep all factual content from the source CV." },
+  { key: "cv-mirror", label: "Mirror their tone", sub: "Match the advert", instruction: "Adjust the profile/summary and phrasing so the CV's register mirrors the tone of the job advert, while staying professional and truthful to the source CV." },
 ];
 
 const GREETINGS = [
@@ -153,6 +166,10 @@ export default function StudioJ() {
   const [regenerating, setRegenerating] = useState<string | null>(null);
   const [customTweak, setCustomTweak] = useState("");
   const [revisionCount, setRevisionCount] = useState(0);
+  const [cvRegenerating, setCvRegenerating] = useState<string | null>(null);
+  const [cvCustomTweak, setCvCustomTweak] = useState("");
+  const [cvRevisionCount, setCvRevisionCount] = useState(0);
+  const [model, setModel] = useState(DEFAULT_MODEL);
   const resultsRef = useRef<HTMLDivElement>(null);
   const [greeting] = useState(() => GREETINGS[Math.floor(Math.random() * GREETINGS.length)]);
 
@@ -168,6 +185,10 @@ export default function StudioJ() {
     } catch {
       setLinks(DEFAULT_LINKS);
     }
+    try {
+      const modelVal = localStorage.getItem(STORAGE_KEYS.model);
+      if (modelVal && MODELS.some((m) => m.id === modelVal)) setModel(modelVal);
+    } catch {}
     setStorageLoaded(true);
   }, []);
 
@@ -175,6 +196,7 @@ export default function StudioJ() {
     try {
       localStorage.setItem(STORAGE_KEYS.cv, cv);
       localStorage.setItem(STORAGE_KEYS.links, JSON.stringify(links));
+      localStorage.setItem(STORAGE_KEYS.model, model);
       setSavedFlash(true);
       setTimeout(() => setSavedFlash(false), 1800);
     } catch {
@@ -270,7 +292,7 @@ export default function StudioJ() {
       const response = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cv, jobDesc, links, jobType }),
+        body: JSON.stringify({ cv, jobDesc, links, jobType, model }),
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
@@ -295,6 +317,8 @@ export default function StudioJ() {
     setDetectedType(null);
     setRevisionCount(0);
     setCustomTweak("");
+    setCvRevisionCount(0);
+    setCvCustomTweak("");
   };
 
   const regenerateLetter = async (presetKey: string, customInstruction: string | null = null) => {
@@ -307,7 +331,7 @@ export default function StudioJ() {
       const response = await fetch("/api/regenerate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ coverLetter: result.coverLetter, cv, jobDesc, instruction }),
+        body: JSON.stringify({ kind: "letter", currentText: result.coverLetter, cv, jobDesc, instruction, model }),
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
@@ -316,8 +340,8 @@ export default function StudioJ() {
         return;
       }
       const parsed = await response.json();
-      if (parsed.coverLetter) {
-        setResult((prev: any) => ({ ...prev, coverLetter: parsed.coverLetter }));
+      if (parsed.text) {
+        setResult((prev: any) => ({ ...prev, coverLetter: parsed.text }));
         setRevisionCount((n) => n + 1);
         if (customInstruction) setCustomTweak("");
       } else {
@@ -332,9 +356,44 @@ export default function StudioJ() {
 
   const handleCustomTweak = () => { if (!customTweak.trim()) return; regenerateLetter("custom", customTweak.trim()); };
 
-  const downloadDocx = () => {
-    if (!result?.coverLetter) return;
-    const paragraphs = result.coverLetter.split(/\n+/).map((p: string) =>
+  const regenerateCv = async (presetKey: string, customInstruction: string | null = null) => {
+    if (!result?.tailoredCv) return;
+    setError("");
+    setCvRegenerating(presetKey);
+    const instruction = customInstruction || CV_REVISION_PRESETS.find((p) => p.key === presetKey)?.instruction;
+    if (!instruction) { setCvRegenerating(null); return; }
+    try {
+      const response = await fetch("/api/regenerate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind: "cv", currentText: result.tailoredCv, cv, jobDesc, instruction, model }),
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        setError(data.error || "Revision failed. Try again.");
+        setCvRegenerating(null);
+        return;
+      }
+      const parsed = await response.json();
+      if (parsed.text) {
+        setResult((prev: any) => ({ ...prev, tailoredCv: parsed.text }));
+        setCvRevisionCount((n) => n + 1);
+        if (customInstruction) setCvCustomTweak("");
+      } else {
+        setError("Revision came back empty. Try again.");
+      }
+    } catch {
+      setError("Revision failed. Try again.");
+    } finally {
+      setCvRegenerating(null);
+    }
+  };
+
+  const handleCvCustomTweak = () => { if (!cvCustomTweak.trim()) return; regenerateCv("cv-custom", cvCustomTweak.trim()); };
+
+  const downloadDocx = (text: string, filenameBase: string) => {
+    if (!text) return;
+    const paragraphs = text.split(/\n+/).map((p: string) =>
       `<w:p><w:pPr><w:spacing w:after="200"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/><w:sz w:val="22"/></w:rPr><w:t xml:space="preserve">${escapeXml(p)}</w:t></w:r></w:p>`
     ).join("");
     const documentXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -351,7 +410,7 @@ export default function StudioJ() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `josh-wilkins-cover-letter-${Date.now()}.docx`;
+    a.download = `${filenameBase}-${Date.now()}.docx`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
@@ -424,7 +483,7 @@ export default function StudioJ() {
             {greeting.sub}
           </p>
           <p className="mt-3 max-w-2xl text-[14px] md:text-[15px] leading-relaxed" style={{ fontWeight: 400 }}>
-            Paste a job description. The desk drafts a cover letter in your voice, with CV recommendations and rewritten bullets tailored to the role. British English, no filler, no em-dashes.
+            Paste a job description. The desk drafts a cover letter and a full tailored CV in your voice, plus recommendations and rewritten bullets for the role. British English, no filler, no em-dashes.
           </p>
         </header>
 
@@ -499,7 +558,7 @@ export default function StudioJ() {
               <div className="flex items-baseline justify-between mb-3 flex-wrap gap-2">
                 <h2 className="serif" style={{ fontSize: 34, fontWeight: 700, letterSpacing: "-0.02em" }}><em style={{ fontWeight: 400 }}>i.</em> Cover Letter</h2>
                 <div className="flex gap-2">
-                  <button onClick={downloadDocx} className="icon-btn mono text-[11px] tracking-[0.15em] uppercase flex items-center gap-2 px-3 py-2" style={{ border: "1.5px solid #1a1612" }}><Download size={12} /> .docx</button>
+                  <button onClick={() => downloadDocx(result.coverLetter, "josh-wilkins-cover-letter")} className="icon-btn mono text-[11px] tracking-[0.15em] uppercase flex items-center gap-2 px-3 py-2" style={{ border: "1.5px solid #1a1612" }}><Download size={12} /> .docx</button>
                   <button onClick={() => copyToClipboard(result.coverLetter, "letter")} className="icon-btn mono text-[11px] tracking-[0.15em] uppercase flex items-center gap-2 px-3 py-2" style={{ border: "1.5px solid #1a1612" }}>{copiedKey === "letter" ? <><Check size={12} /> Copied</> : <><Copy size={12} /> Copy</>}</button>
                 </div>
               </div>
@@ -535,9 +594,56 @@ export default function StudioJ() {
               </div>
             </section>
 
+            {result.tailoredCv && (
+              <>
+                <section className="mb-10">
+                  <div className="flex items-baseline justify-between mb-3 flex-wrap gap-2">
+                    <div className="flex items-baseline gap-3 flex-wrap">
+                      <h2 className="serif" style={{ fontSize: 34, fontWeight: 700, letterSpacing: "-0.02em" }}><em style={{ fontWeight: 400 }}>ii.</em> Tailored CV</h2>
+                      {cvRevisionCount > 0 && <span className="mono text-[11px] tracking-[0.2em] uppercase opacity-50">Take {cvRevisionCount + 1}</span>}
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => downloadDocx(result.tailoredCv, "josh-wilkins-cv")} className="icon-btn mono text-[11px] tracking-[0.15em] uppercase flex items-center gap-2 px-3 py-2" style={{ border: "1.5px solid #1a1612" }}><Download size={12} /> .docx</button>
+                      <button onClick={() => copyToClipboard(result.tailoredCv, "cv")} className="icon-btn mono text-[11px] tracking-[0.15em] uppercase flex items-center gap-2 px-3 py-2" style={{ border: "1.5px solid #1a1612" }}>{copiedKey === "cv" ? <><Check size={12} /> Copied</> : <><Copy size={12} /> Copy</>}</button>
+                    </div>
+                  </div>
+                  <div className="rule mb-4" />
+                  <div className="p-6 md:p-8 mono whitespace-pre-wrap" style={{ background: "#fbf7ee", border: "1.5px solid #1a1612", fontSize: 13.5, lineHeight: 1.7 }}>{result.tailoredCv}</div>
+                </section>
+
+                <section className="mb-10">
+                  <h2 className="serif mb-3" style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.02em" }}><em style={{ fontWeight: 400 }}>Tune the CV</em></h2>
+                  <div className="rule mb-4" />
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4">
+                    {CV_REVISION_PRESETS.map((preset) => {
+                      const busy = cvRegenerating === preset.key;
+                      const anyBusy = cvRegenerating !== null;
+                      return (
+                        <button key={preset.key} onClick={() => regenerateCv(preset.key)} disabled={anyBusy} className="mode-btn text-left p-3" style={{ background: busy ? "#1a1612" : "transparent", color: busy ? "#f5efe4" : "#1a1612", border: "1.5px solid #1a1612", opacity: anyBusy && !busy ? 0.4 : 1, cursor: anyBusy ? "wait" : "pointer" }}>
+                          <div className="flex items-center gap-2">
+                            {busy && <Loader2 size={11} className="animate-spin" />}
+                            <div className="serif" style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em" }}>{preset.label}</div>
+                          </div>
+                          <div className="mono text-[10px] mt-1 opacity-75 leading-tight">{preset.sub}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="flex-1 p-3" style={{ background: "#fbf7ee", border: "1.5px solid #1a1612" }}>
+                      <input type="text" value={cvCustomTweak} onChange={(e) => setCvCustomTweak(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !cvRegenerating && cvCustomTweak.trim()) handleCvCustomTweak(); }} placeholder="Or write your own: 'add a key-skills line at the top', 'move education below experience'…" />
+                    </div>
+                    <button onClick={handleCvCustomTweak} disabled={!!cvRegenerating || !cvCustomTweak.trim()} className="icon-btn mono text-[11px] tracking-[0.15em] uppercase px-4 flex items-center gap-2" style={{ border: "1.5px solid #1a1612", opacity: !cvCustomTweak.trim() || cvRegenerating ? 0.4 : 1, cursor: cvRegenerating ? "wait" : cvCustomTweak.trim() ? "pointer" : "not-allowed" }}>
+                      {cvRegenerating === "cv-custom" ? <><Loader2 size={11} className="animate-spin" />Tuning</> : <><Sparkles size={11} />Apply</>}
+                    </button>
+                  </div>
+                </section>
+              </>
+            )}
+
             <section className="mb-10">
               <div className="flex items-baseline justify-between mb-3">
-                <h2 className="serif" style={{ fontSize: 34, fontWeight: 700, letterSpacing: "-0.02em" }}><em style={{ fontWeight: 400 }}>ii.</em> CV Recommendations</h2>
+                <h2 className="serif" style={{ fontSize: 34, fontWeight: 700, letterSpacing: "-0.02em" }}><em style={{ fontWeight: 400 }}>iii.</em> CV Recommendations</h2>
                 <button onClick={() => copyToClipboard(result.cvRecommendations.map((r: string, i: number) => `${i + 1}. ${r}`).join("\n\n"), "recs")} className="icon-btn mono text-[11px] tracking-[0.15em] uppercase flex items-center gap-2 px-3 py-2" style={{ border: "1.5px solid #1a1612" }}>{copiedKey === "recs" ? <><Check size={12} /> Copied</> : <><Copy size={12} /> Copy</>}</button>
               </div>
               <div className="rule mb-4" />
@@ -553,7 +659,7 @@ export default function StudioJ() {
 
             {result.bulletRewrites && result.bulletRewrites.length > 0 && (
               <section className="mb-10">
-                <h2 className="serif mb-3" style={{ fontSize: 34, fontWeight: 700, letterSpacing: "-0.02em" }}><em style={{ fontWeight: 400 }}>iii.</em> Bullet Rewrites</h2>
+                <h2 className="serif mb-3" style={{ fontSize: 34, fontWeight: 700, letterSpacing: "-0.02em" }}><em style={{ fontWeight: 400 }}>iv.</em> Bullet Rewrites</h2>
                 <div className="rule mb-4" />
                 <div className="space-y-6">
                   {result.bulletRewrites.map((b: any, i: number) => (
@@ -594,6 +700,27 @@ export default function StudioJ() {
                 <button onClick={() => setSettingsOpen(false)} className="icon-btn p-2" style={{ border: "1.5px solid #1a1612" }}><X size={16} /></button>
               </div>
               <div className="rule-thick mb-6" />
+
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <Cpu size={13} className="opacity-60" />
+                  <label className="mono text-[11px] tracking-[0.2em] uppercase opacity-60">Engine</label>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {MODELS.map((m) => {
+                    const active = model === m.id;
+                    return (
+                      <button key={m.id} onClick={() => setModel(m.id)} className="mode-btn text-left p-3" style={{ background: active ? "#1a1612" : "transparent", color: active ? "#f5efe4" : "#1a1612", border: "1.5px solid #1a1612" }}>
+                        <div className="serif" style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em" }}>{m.label}</div>
+                        <div className="mono text-[10px] mt-1 opacity-75 leading-tight">{m.sub}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="mono text-[10px] opacity-50 mt-2 leading-relaxed">Which Claude writes the letters and CVs. Opus is sharper; Sonnet is faster and cheaper. Saved with your profile.</div>
+              </div>
+
+              <div className="rule mb-6" />
 
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-2">

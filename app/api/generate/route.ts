@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { resolveModel } from "@/lib/models";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -56,6 +57,15 @@ Cover letter rules:
 - Do NOT invent credits, artists, venues, qualifications, or metrics not present in the CV
 - No date, no addresses, no letterhead — start with "Dear [Hiring Manager]" (or a name if obvious from the JD) through to sign-off "Best, Josh Wilkins"
 
+Tailored CV rules:
+- Produce a COMPLETE, ready-to-send CV for Josh, rewritten and re-ordered to fit THIS job.
+- Use ONLY information present in Josh's source CV below. Do NOT invent roles, credits, artists, venues, dates, qualifications, metrics, or skills. If the source CV lacks something, leave it out.
+- Re-order and re-weight so the most role-relevant experience and skills come first. Sharpen the wording and lead bullets with impact, but keep every claim truthful to the source.
+- Keep it concise and ATS-friendly: plain text only — no tables, no columns, no graphics, no markdown.
+- Structure it clearly: a name and title block at the top, then UPPERCASE section headers on their own lines (e.g. PROFILE, EXPERIENCE, EDUCATION, SKILLS). Use "- " for bullet points under roles. Put a single blank line between sections.
+- British English throughout. Same banned words and phrases as the cover letter. No em-dashes or en-dashes.
+- Return the whole CV as one string in the "tailoredCv" field, using \n for line breaks.
+
 CV recommendations rules:
 - 4-6 specific, actionable recommendations tied to THIS job
 - Not generic ("use action verbs") — JD-specific ("Move the X credit higher since the brief asks for Y")
@@ -70,6 +80,7 @@ Return JSON in exactly this shape:
 {
   "detectedType": "session" | "engineering" | "teaching" | "industry" | "other",
   "coverLetter": "string",
+  "tailoredCv": "string",
   "cvRecommendations": ["string", ...],
   "bulletRewrites": [{ "original": "string", "rewritten": "string" }, ...]
 }
@@ -91,7 +102,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { cv, jobDesc, links, jobType } = await request.json();
+    const { cv, jobDesc, links, jobType, model } = await request.json();
     if (!cv || !jobDesc) {
       return NextResponse.json({ error: "Missing CV or job description" }, { status: 400 });
     }
@@ -106,8 +117,8 @@ export async function POST(request: Request) {
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 2500,
+        model: resolveModel(model),
+        max_tokens: 5000,
         messages: [{ role: "user", content: prompt }],
       }),
     });
