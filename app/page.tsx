@@ -46,13 +46,13 @@ const STORAGE_KEYS = {
   model: "studio-j:model",
 };
 
-const JOB_TYPES = [
+const JOB_TYPES: { key: string; label: string; sub: string; accent?: string }[] = [
   { key: "auto", label: "Auto", sub: "Let the desk pick" },
   { key: "session", label: "Session", sub: "Drumming, recording" },
   { key: "engineering", label: "Studio", sub: "Mix, master, produce" },
   { key: "teaching", label: "Teaching", sub: "Tuition, schools" },
   { key: "industry", label: "Industry", sub: "Label, A&R" },
-  { key: "general", label: "General", sub: "Outside music" },
+  { key: "general", label: "Non-Industry / General", sub: "Outside music", accent: "#b07d2b" },
 ];
 
 const SAMPLE_CV = `JOSH WILKINS
@@ -512,8 +512,9 @@ export default function StudioJ() {
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                 {JOB_TYPES.map((t) => {
                   const active = jobType === t.key;
+                  const ink = t.accent || "#1a1612";
                   return (
-                    <button key={t.key} onClick={() => setJobType(t.key)} className="mode-btn text-left p-3" style={{ background: active ? "#1a1612" : "transparent", color: active ? "#f5efe4" : "#1a1612", border: "1.5px solid #1a1612" }}>
+                    <button key={t.key} onClick={() => setJobType(t.key)} className="mode-btn text-left p-3" style={{ background: active ? ink : "transparent", color: active ? "#f5efe4" : ink, border: `1.5px solid ${ink}` }}>
                       <div className="serif" style={{ fontSize: 16, fontWeight: 600, letterSpacing: "-0.01em" }}>{t.label}</div>
                       <div className="mono text-[10px] mt-1 opacity-75 leading-tight">{t.sub}</div>
                     </button>
