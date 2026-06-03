@@ -52,6 +52,7 @@ const JOB_TYPES = [
   { key: "engineering", label: "Studio", sub: "Mix, master, produce" },
   { key: "teaching", label: "Teaching", sub: "Tuition, schools" },
   { key: "industry", label: "Industry", sub: "Label, A&R" },
+  { key: "general", label: "General", sub: "Outside music" },
 ];
 
 const SAMPLE_CV = `JOSH WILKINS
@@ -508,7 +509,7 @@ export default function StudioJ() {
 
             <div className="mb-6">
               <div className="mono text-[11px] tracking-[0.2em] uppercase opacity-60 mb-3">01 — Role type</div>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                 {JOB_TYPES.map((t) => {
                   const active = jobType === t.key;
                   return (

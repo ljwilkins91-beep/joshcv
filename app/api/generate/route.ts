@@ -13,12 +13,14 @@ const JOB_TYPE_GUIDANCE: Record<string, string> = {
     "This is a MUSIC TEACHING role. Emphasise patience, pedagogical approach, experience with students at relevant levels, and love of the instrument. Keep it warm but grounded.",
   industry:
     "This is a MUSIC INDUSTRY role (label, publishing, A&R, etc.). Emphasise taste, ears, network, understanding of artists from the inside, and any organisational or commercial experience. Show the perspective of someone who knows the creative side.",
+  general:
+    "This role is OUTSIDE the music industry (general / non-music work such as admin, operations, customer service, hospitality, retail, or similar). The reader will NOT know or care about the music scene. Lead with TRANSFERABLE skills and translate Josh's experience into plain terms a general employer understands: running his own freelance business for years, managing client relationships and deadlines, coordinating projects end to end, reliability, clear communication, attention to detail, and self-discipline. Avoid music-industry jargon, gear names, and credits the reader will not recognise. Do not shoehorn in music portfolio links unless the role genuinely values a creative background.",
 };
 
 function buildPrompt(cv: string, jobDesc: string, links: any[], jobType: string) {
   const typeInstruction =
     jobType === "auto"
-      ? `First, determine which category this job falls into based on the job description: "session" (live/recording drumming gigs), "engineering" (studio work — mixing, mastering, producing, audio editing), "teaching" (music tuition), "industry" (label, publishing, A&R, management, music business), or "other". Then tailor the letter for that category using this guidance:\n\nSession: ${JOB_TYPE_GUIDANCE.session}\nEngineering: ${JOB_TYPE_GUIDANCE.engineering}\nTeaching: ${JOB_TYPE_GUIDANCE.teaching}\nIndustry: ${JOB_TYPE_GUIDANCE.industry}\n\nReturn your classification in the "detectedType" field.`
+      ? `First, determine which category this job falls into based on the job description: "session" (live/recording drumming gigs), "engineering" (studio work — mixing, mastering, producing, audio editing), "teaching" (music tuition), "industry" (label, publishing, A&R, management, music business), "general" (any job outside music: admin, hospitality, retail, operations, and the like), or "other". Then tailor the letter for that category using this guidance:\n\nSession: ${JOB_TYPE_GUIDANCE.session}\nEngineering: ${JOB_TYPE_GUIDANCE.engineering}\nTeaching: ${JOB_TYPE_GUIDANCE.teaching}\nIndustry: ${JOB_TYPE_GUIDANCE.industry}\nGeneral: ${JOB_TYPE_GUIDANCE.general}\n\nReturn your classification in the "detectedType" field.`
       : `${JOB_TYPE_GUIDANCE[jobType] || ""}\n\nReturn "${jobType}" in the "detectedType" field.`;
 
   const linksBlock =
@@ -78,7 +80,7 @@ Bullet rewrites rules:
 
 Return JSON in exactly this shape:
 {
-  "detectedType": "session" | "engineering" | "teaching" | "industry" | "other",
+  "detectedType": "session" | "engineering" | "teaching" | "industry" | "general" | "other",
   "coverLetter": "string",
   "tailoredCv": "string",
   "cvRecommendations": ["string", ...],
